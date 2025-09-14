@@ -59,7 +59,10 @@ class LeadPayout_Stripe {
         }
         
         // Check user balance
-        $balance = LeadPayout_Database::get_user_balance($user_id);
+        $balance = (object) array('available_balance' => 0);
+        if (class_exists('LeadPayout_Database')) {
+            $balance = LeadPayout_Database::get_user_balance($user_id);
+        }
         if ($amount > $balance->available_balance) {
             wp_send_json_error(__('Insufficient balance.', 'leadpayout-pro'));
         }
@@ -78,10 +81,14 @@ class LeadPayout_Stripe {
         
         if ($result) {
             // Update user balance (subtract from available, add to pending withdrawal)
-            LeadPayout_Database::update_user_balance($user_id, $amount, 'subtract');
+            if (class_exists('LeadPayout_Database')) {
+                LeadPayout_Database::update_user_balance($user_id, $amount, 'subtract');
+            }
             
             // Send notification to admin
-            LeadPayout_Emails::send_withdrawal_notification($user_id, $amount, $method);
+            if (class_exists('LeadPayout_Emails')) {
+                LeadPayout_Emails::send_withdrawal_notification($user_id, $amount, $method);
+            }
             
             wp_send_json_success(__('Withdrawal request submitted successfully.', 'leadpayout-pro'));
         } else {
@@ -136,7 +143,9 @@ class LeadPayout_Stripe {
                 ));
                 
                 // Update user balance
-                LeadPayout_Database::update_user_balance($user_id, $amount, 'add');
+                if (class_exists('LeadPayout_Database')) {
+                    LeadPayout_Database::update_user_balance($user_id, $amount, 'add');
+                }
                 
                 wp_send_json_success(array(
                     'message' => __('Payment successful!', 'leadpayout-pro'),
@@ -179,7 +188,9 @@ class LeadPayout_Stripe {
                 ), array('id' => $withdrawal_id));
                 
                 // Send confirmation email
-                LeadPayout_Emails::send_withdrawal_confirmation($withdrawal->user_id, $withdrawal->amount);
+                if (class_exists('LeadPayout_Emails')) {
+                    LeadPayout_Emails::send_withdrawal_confirmation($withdrawal->user_id, $withdrawal->amount);
+                }
                 
                 return true;
             } else {
@@ -190,7 +201,9 @@ class LeadPayout_Stripe {
                 ), array('id' => $withdrawal_id));
                 
                 // Refund balance
-                LeadPayout_Database::update_user_balance($withdrawal->user_id, $withdrawal->amount, 'add');
+                if (class_exists('LeadPayout_Database')) {
+                    LeadPayout_Database::update_user_balance($withdrawal->user_id, $withdrawal->amount, 'add');
+                }
                 
                 return false;
             }

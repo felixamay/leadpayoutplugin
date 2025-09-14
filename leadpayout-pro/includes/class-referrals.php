@@ -26,7 +26,15 @@ class LeadPayout_Referrals {
     
     public function handle_user_registration($user_id) {
         // Generate unique referral code for new user
-        $referral_code = LeadPayout_Database::generate_referral_code($user_id);
+        if (class_exists('LeadPayout_Database')) {
+            $referral_code = LeadPayout_Database::generate_referral_code($user_id);
+        } else {
+            // Fallback method
+            $user = get_user_by('ID', $user_id);
+            $base = strtoupper(substr($user->user_login, 0, 3));
+            $random = strtoupper(wp_generate_password(5, false));
+            $referral_code = $base . $random;
+        }
         update_user_meta($user_id, 'leadpayout_referral_code', $referral_code);
         
         // Check if user was referred
@@ -94,7 +102,9 @@ class LeadPayout_Referrals {
             
             if ($result) {
                 // Send notification to referrer
-                LeadPayout_Emails::send_referral_notification($referrer->ID, $referred_user_id);
+                if (class_exists('LeadPayout_Emails')) {
+                    LeadPayout_Emails::send_referral_notification($referrer->ID, $referred_user_id);
+                }
                 return true;
             }
         }
@@ -127,7 +137,9 @@ class LeadPayout_Referrals {
             ));
             
             // Update referrer's balance
-            LeadPayout_Database::update_user_balance($referral->referrer_id, $commission_amount, 'add');
+            if (class_exists('LeadPayout_Database')) {
+                LeadPayout_Database::update_user_balance($referral->referrer_id, $commission_amount, 'add');
+            }
             
             // Update total earned in referrals table
             $wpdb->update($referrals_table, array(
@@ -135,7 +147,9 @@ class LeadPayout_Referrals {
             ), array('id' => $referral->id));
             
             // Send commission notification
-            LeadPayout_Emails::send_commission_notification($referral->referrer_id, $commission_amount, $user_id);
+            if (class_exists('LeadPayout_Emails')) {
+                LeadPayout_Emails::send_commission_notification($referral->referrer_id, $commission_amount, $user_id);
+            }
         }
     }
     
@@ -199,7 +213,15 @@ class LeadPayout_Referrals {
         $referral_code = get_user_meta($user_id, 'leadpayout_referral_code', true);
         
         if (empty($referral_code)) {
-            $referral_code = LeadPayout_Database::generate_referral_code($user_id);
+            if (class_exists('LeadPayout_Database')) {
+                $referral_code = LeadPayout_Database::generate_referral_code($user_id);
+            } else {
+                // Fallback method
+                $user = get_user_by('ID', $user_id);
+                $base = strtoupper(substr($user->user_login, 0, 3));
+                $random = strtoupper(wp_generate_password(5, false));
+                $referral_code = $base . $random;
+            }
             update_user_meta($user_id, 'leadpayout_referral_code', $referral_code);
         }
         

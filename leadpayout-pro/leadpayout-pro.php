@@ -43,7 +43,6 @@ class LeadPayoutPro {
     
     private function __construct() {
         $this->init_hooks();
-        $this->load_dependencies();
     }
     
     private function init_hooks() {
@@ -53,29 +52,59 @@ class LeadPayoutPro {
     }
     
     private function load_dependencies() {
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-database.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-admin.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-frontend.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-tasks.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-referrals.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-stripe.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-shortcodes.php';
-        require_once LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/class-emails.php';
+        $includes_path = LEADPAYOUT_PRO_PLUGIN_PATH . 'includes/';
+        
+        $files = array(
+            'class-database.php',
+            'class-admin.php',
+            'class-frontend.php',
+            'class-tasks.php',
+            'class-referrals.php',
+            'class-stripe.php',
+            'class-shortcodes.php',
+            'class-emails.php'
+        );
+        
+        foreach ($files as $file) {
+            $file_path = $includes_path . $file;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+            }
+        }
     }
     
     public function init() {
+        // Load dependencies first
+        $this->load_dependencies();
+        
         // Load text domain
         load_plugin_textdomain('leadpayout-pro', false, dirname(plugin_basename(__FILE__)) . '/languages');
         
-        // Initialize components
-        LeadPayout_Database::get_instance();
-        LeadPayout_Admin::get_instance();
-        LeadPayout_Frontend::get_instance();
-        LeadPayout_Tasks::get_instance();
-        LeadPayout_Referrals::get_instance();
-        LeadPayout_Stripe::get_instance();
-        LeadPayout_Shortcodes::get_instance();
-        LeadPayout_Emails::get_instance();
+        // Initialize components only if classes exist
+        if (class_exists('LeadPayout_Database')) {
+            LeadPayout_Database::get_instance();
+        }
+        if (class_exists('LeadPayout_Admin')) {
+            LeadPayout_Admin::get_instance();
+        }
+        if (class_exists('LeadPayout_Frontend')) {
+            LeadPayout_Frontend::get_instance();
+        }
+        if (class_exists('LeadPayout_Tasks')) {
+            LeadPayout_Tasks::get_instance();
+        }
+        if (class_exists('LeadPayout_Referrals')) {
+            LeadPayout_Referrals::get_instance();
+        }
+        if (class_exists('LeadPayout_Stripe')) {
+            LeadPayout_Stripe::get_instance();
+        }
+        if (class_exists('LeadPayout_Shortcodes')) {
+            LeadPayout_Shortcodes::get_instance();
+        }
+        if (class_exists('LeadPayout_Emails')) {
+            LeadPayout_Emails::get_instance();
+        }
         
         // Enqueue scripts and styles
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
@@ -83,8 +112,13 @@ class LeadPayoutPro {
     }
     
     public function activate() {
+        // Load dependencies first
+        $this->load_dependencies();
+        
         // Create database tables
-        LeadPayout_Database::create_tables();
+        if (class_exists('LeadPayout_Database')) {
+            LeadPayout_Database::create_tables();
+        }
         
         // Create frontend pages
         $this->create_frontend_pages();

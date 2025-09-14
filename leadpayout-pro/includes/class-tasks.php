@@ -138,7 +138,9 @@ class LeadPayout_Tasks {
             }
             
             // Send notification email to admin
-            LeadPayout_Emails::send_new_submission_notification($task, $user_id);
+            if (class_exists('LeadPayout_Emails')) {
+                LeadPayout_Emails::send_new_submission_notification($task, $user_id);
+            }
             
             wp_send_json_success(__('Task submitted successfully!', 'leadpayout-pro'));
         } else {
@@ -247,7 +249,9 @@ class LeadPayout_Tasks {
         ));
         
         // Update user balance
-        LeadPayout_Database::update_user_balance($submission->user_id, $submission->payout_amount, 'add');
+        if (class_exists('LeadPayout_Database')) {
+            LeadPayout_Database::update_user_balance($submission->user_id, $submission->payout_amount, 'add');
+        }
         
         // Update task remaining budget
         $new_budget = $submission->remaining_budget - $submission->payout_amount;
@@ -257,10 +261,14 @@ class LeadPayout_Tasks {
         ), array('id' => $submission->task_id));
         
         // Process referral commission if applicable
-        LeadPayout_Referrals::process_referral_commission($submission->user_id, $submission->payout_amount);
+        if (class_exists('LeadPayout_Referrals')) {
+            LeadPayout_Referrals::process_referral_commission($submission->user_id, $submission->payout_amount);
+        }
         
         // Send approval email
-        LeadPayout_Emails::send_task_approval_notification($submission);
+        if (class_exists('LeadPayout_Emails')) {
+            LeadPayout_Emails::send_task_approval_notification($submission);
+        }
         
         return true;
     }
@@ -285,7 +293,9 @@ class LeadPayout_Tasks {
             ));
             
             // Send rejection email
-            LeadPayout_Emails::send_task_rejection_notification($submission, $reason);
+            if (class_exists('LeadPayout_Emails')) {
+                LeadPayout_Emails::send_task_rejection_notification($submission, $reason);
+            }
         }
         
         return $result;

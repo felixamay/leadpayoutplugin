@@ -59,7 +59,7 @@ class LeadPayout_Emails {
             'user_name' => $user->display_name,
             'task_title' => $task->title,
             'payout_amount' => number_format($submission->payout_amount, 2),
-            'earnings_url' => LeadPayout_Frontend::get_earnings_url()
+            'earnings_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_earnings_url() : home_url())
         ));
         
         wp_mail($user->user_email, $subject, $message);
@@ -81,7 +81,7 @@ class LeadPayout_Emails {
             'user_name' => $user->display_name,
             'task_title' => $task->title,
             'reason' => $reason,
-            'tasks_url' => LeadPayout_Frontend::get_tasks_url()
+            'tasks_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_tasks_url() : home_url())
         ));
         
         wp_mail($user->user_email, $subject, $message);
@@ -97,7 +97,7 @@ class LeadPayout_Emails {
             'referrer_name' => $referrer->display_name,
             'referred_name' => $referred_user->display_name,
             'commission_rate' => get_option('leadpayout_referral_rate', 10),
-            'referrals_url' => LeadPayout_Frontend::get_referrals_url()
+            'referrals_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_referrals_url() : home_url())
         ));
         
         wp_mail($referrer->user_email, $subject, $message);
@@ -113,7 +113,7 @@ class LeadPayout_Emails {
             'referrer_name' => $referrer->display_name,
             'referred_name' => $referred_user->display_name,
             'commission_amount' => number_format($commission_amount, 2),
-            'earnings_url' => LeadPayout_Frontend::get_earnings_url()
+            'earnings_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_earnings_url() : home_url())
         ));
         
         wp_mail($referrer->user_email, $subject, $message);
@@ -154,7 +154,7 @@ class LeadPayout_Emails {
         $message = self::get_email_template('withdrawal_confirmed', array(
             'user_name' => $user->display_name,
             'amount' => number_format($amount, 2),
-            'earnings_url' => LeadPayout_Frontend::get_earnings_url()
+            'earnings_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_earnings_url() : home_url())
         ));
         
         wp_mail($user->user_email, $subject, $message);
@@ -162,16 +162,19 @@ class LeadPayout_Emails {
     
     public static function send_welcome_email($user_id) {
         $user = get_user_by('ID', $user_id);
-        $referral_code = LeadPayout_Referrals::get_user_referral_code($user_id);
+        $referral_code = 'N/A';
+        if (class_exists('LeadPayout_Referrals')) {
+            $referral_code = LeadPayout_Referrals::get_user_referral_code($user_id);
+        }
         
         $subject = __('[LeadPayout] Welcome to LeadPayout Pro!', 'leadpayout-pro');
         
         $message = self::get_email_template('welcome', array(
             'user_name' => $user->display_name,
             'referral_code' => $referral_code,
-            'dashboard_url' => LeadPayout_Frontend::get_user_dashboard_url(),
-            'tasks_url' => LeadPayout_Frontend::get_tasks_url(),
-            'referrals_url' => LeadPayout_Frontend::get_referrals_url()
+            'dashboard_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_user_dashboard_url() : home_url()),
+            'tasks_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_tasks_url() : home_url()),
+            'referrals_url' => (class_exists('LeadPayout_Frontend') ? LeadPayout_Frontend::get_referrals_url() : home_url())
         ));
         
         wp_mail($user->user_email, $subject, $message);

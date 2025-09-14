@@ -34,8 +34,13 @@ class LeadPayout_Shortcodes {
                    '</div>';
         }
         
-        $available_tasks = LeadPayout_Tasks::get_available_tasks();
-        $user_submissions = LeadPayout_Tasks::get_user_submissions();
+        $available_tasks = array();
+        $user_submissions = array();
+        
+        if (class_exists('LeadPayout_Tasks')) {
+            $available_tasks = LeadPayout_Tasks::get_available_tasks();
+            $user_submissions = LeadPayout_Tasks::get_user_submissions();
+        }
         
         ob_start();
         ?>
@@ -208,7 +213,15 @@ class LeadPayout_Shortcodes {
         }
         
         $user_id = get_current_user_id();
-        $balance = LeadPayout_Database::get_user_balance($user_id);
+        $balance = (object) array(
+            'available_balance' => 0,
+            'total_earned' => 0,
+            'total_withdrawn' => 0
+        );
+        
+        if (class_exists('LeadPayout_Database')) {
+            $balance = LeadPayout_Database::get_user_balance($user_id);
+        }
         
         global $wpdb;
         $earnings_table = $wpdb->prefix . 'leadpayout_earnings';
@@ -387,10 +400,17 @@ class LeadPayout_Shortcodes {
         }
         
         $user_id = get_current_user_id();
-        $stats = LeadPayout_Referrals::get_referral_stats($user_id);
-        $referrals = LeadPayout_Referrals::get_user_referrals($user_id);
-        $referral_code = LeadPayout_Referrals::get_user_referral_code($user_id);
-        $referral_link = LeadPayout_Referrals::get_referral_link($user_id);
+        $stats = (object) array('total_referrals' => 0, 'total_commission_earned' => 0, 'commission_this_month' => 0);
+        $referrals = array();
+        $referral_code = 'N/A';
+        $referral_link = home_url();
+        
+        if (class_exists('LeadPayout_Referrals')) {
+            $stats = LeadPayout_Referrals::get_referral_stats($user_id);
+            $referrals = LeadPayout_Referrals::get_user_referrals($user_id);
+            $referral_code = LeadPayout_Referrals::get_user_referral_code($user_id);
+            $referral_link = LeadPayout_Referrals::get_referral_link($user_id);
+        }
         
         ob_start();
         ?>
@@ -501,7 +521,10 @@ class LeadPayout_Shortcodes {
             'period' => 'week'
         ), $atts);
         
-        $leaders = LeadPayout_Database::get_leaderboard($atts['limit'], $atts['period']);
+        $leaders = array();
+        if (class_exists('LeadPayout_Database')) {
+            $leaders = LeadPayout_Database::get_leaderboard($atts['limit'], $atts['period']);
+        }
         
         ob_start();
         ?>
@@ -538,8 +561,15 @@ class LeadPayout_Shortcodes {
         }
         
         $user_id = get_current_user_id();
-        $balance = LeadPayout_Database::get_user_balance($user_id);
-        $referral_stats = LeadPayout_Referrals::get_referral_stats($user_id);
+        $balance = (object) array('available_balance' => 0, 'total_earned' => 0);
+        $referral_stats = (object) array('total_referrals' => 0);
+        
+        if (class_exists('LeadPayout_Database')) {
+            $balance = LeadPayout_Database::get_user_balance($user_id);
+        }
+        if (class_exists('LeadPayout_Referrals')) {
+            $referral_stats = LeadPayout_Referrals::get_referral_stats($user_id);
+        }
         
         global $wpdb;
         $submissions_table = $wpdb->prefix . 'leadpayout_submissions';

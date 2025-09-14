@@ -532,8 +532,13 @@ class LeadPayout_Admin {
     }
     
     public function leaderboard_page() {
-        $weekly_leaders = LeadPayout_Database::get_leaderboard(10, 'week');
-        $monthly_leaders = LeadPayout_Database::get_leaderboard(10, 'month');
+        $weekly_leaders = array();
+        $monthly_leaders = array();
+        
+        if (class_exists('LeadPayout_Database')) {
+            $weekly_leaders = LeadPayout_Database::get_leaderboard(10, 'week');
+            $monthly_leaders = LeadPayout_Database::get_leaderboard(10, 'month');
+        }
         
         ?>
         <div class="wrap">
@@ -678,7 +683,10 @@ class LeadPayout_Admin {
         }
         
         $submission_id = intval($_POST['submission_id']);
-        LeadPayout_Tasks::approve_submission($submission_id);
+        
+        if (class_exists('LeadPayout_Tasks')) {
+            LeadPayout_Tasks::approve_submission($submission_id);
+        }
         
         wp_send_json_success(__('Task approved successfully.', 'leadpayout-pro'));
     }
@@ -692,7 +700,10 @@ class LeadPayout_Admin {
         
         $submission_id = intval($_POST['submission_id']);
         $reason = sanitize_text_field($_POST['reason']);
-        LeadPayout_Tasks::reject_submission($submission_id, $reason);
+        
+        if (class_exists('LeadPayout_Tasks')) {
+            LeadPayout_Tasks::reject_submission($submission_id, $reason);
+        }
         
         wp_send_json_success(__('Task rejected.', 'leadpayout-pro'));
     }
@@ -705,7 +716,10 @@ class LeadPayout_Admin {
         }
         
         $withdrawal_id = intval($_POST['withdrawal_id']);
-        LeadPayout_Stripe::process_withdrawal($withdrawal_id);
+        
+        if (class_exists('LeadPayout_Stripe')) {
+            LeadPayout_Stripe::process_withdrawal($withdrawal_id);
+        }
         
         wp_send_json_success(__('Withdrawal processed.', 'leadpayout-pro'));
     }
